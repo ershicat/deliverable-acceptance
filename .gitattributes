@@ -1,0 +1,27 @@
+# 换行与二进制文件策略
+#
+# 为什么必须强制 LF：SKILL.md 的 frontmatter 判定依赖「首行严格等于 ---」与闭合行匹配。
+# 多数平台容忍行尾 \r，但没有理由冒这个险——一份被 checkout 成 CRLF 的技能文件，
+# 排查起来会非常费时（症状是"技能不生效"，而文件看起来完全正常）。
+* text=auto eol=lf
+
+*.md    text eol=lf
+*.markdown text eol=lf
+*.txt   text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.json  text eol=lf
+*.toml  text eol=lf
+*.ps1   text eol=lf
+*.sh    text eol=lf
+*.js    text eol=lf
+*.mjs   text eol=lf
+
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.ico   binary
+*.zip   binary
+*.pdf   binary
