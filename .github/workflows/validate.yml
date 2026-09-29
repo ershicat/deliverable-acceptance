@@ -1,0 +1,36 @@
+name: validate
+
+# 每次推送与 PR 都校验 SKILL.md 的格式不变量。
+#
+# 这一层是"服务端兜底"：克隆仓库的人不需要配任何东西，
+# 即使本地没启用 .githooks/pre-commit，坏掉的 SKILL.md 也进不了 main。
+#
+# 校验内容见 scripts/check_skill.py：
+#   BOM / CRLF / 行尾空白 / 首行严格 --- / frontmatter 闭合与真解析 /
+#   \--- 转义 / name 字符集 / name 是否等于目录名 / README 与 LICENSE 是否存在
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  skill:
+    name: SKILL.md format invariants
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install PyYAML (enables the frontmatter parse check)
+        run: python -m pip install --quiet pyyaml
+
+      - name: Validate SKILL.md
+        run: python scripts/check_skill.py

@@ -2,6 +2,8 @@
 
 # deliverable-acceptance — a platform-neutral acceptance standard for agent deliverables
 
+[![validate](https://github.com/ershicat/deliverable-acceptance/actions/workflows/validate.yml/badge.svg)](https://github.com/ershicat/deliverable-acceptance/actions/workflows/validate.yml)
+
 > Four layers, 27 criteria, no platform assumptions, no deliverable-shape assumptions.
 >
 > In one line: **it does not tell you whether the files are there — it tells you whether the declared things actually take effect, and it refuses to count "not verified" as "passed".**
@@ -31,11 +33,16 @@ Plus a verdict discipline: five verdicts (`pass`/`fail`/`warn`/`skip`/`error`), 
 
 ```
 deliverable-acceptance/
-├── SKILL.md      # the standard itself (self-contained, 184 lines)
-├── README.md     # usage guide (Chinese)
-├── README.en.md  # usage guide (English)
-├── LICENSE.md    # MIT License
-└── .gitattributes
+├── SKILL.md                        # the standard itself (self-contained, 184 lines)
+├── README.md / README.en.md        # usage guide (Chinese / English)
+├── LICENSE.md                      # MIT License
+├── .editorconfig                   # editor-level text rules: UTF-8 without BOM, LF, no trailing whitespace
+├── .prettierignore                 # keeps Prettier away from SKILL.md
+├── .gitattributes                  # force LF
+├── .gitignore
+├── .githooks/pre-commit            # optional pre-commit check
+├── .github/workflows/validate.yml  # CI check (server-side backstop)
+└── scripts/check_skill.py          # the checker itself
 ```
 
 **Why a single standard file**: everything platform-specific was turned into a *slot* that the user fills in. Platform evidence never enters the standard, so it stays a single portable file.
@@ -164,6 +171,34 @@ Run all four per platform and record the outcome in your adaptation table. **Con
 3. **Behavioural results are narrow** — L4-04's outcome cannot be extrapolated into "this agent can do the job".
 4. **Visuals and aesthetics are not judged** — only "does it install".
 5. **Target-machine environment differences** are out of reach (paths, permissions, antivirus, ports).
+
+---
+
+## Repository validation: keeping the skill from being "formatted" to death
+
+The artifact of this repository is a **skill**, and the most fragile part of a skill is the top of `SKILL.md`: the first line of the frontmatter must be exactly `---`.
+A Markdown formatter once rewrote it, escaping the delimiters to `\---` and padding the line endings with spaces. **Every file-level check still passed, but the skill could no longer load** -- the platform just logs one warning and ignores the file. That is the hardest class of defect to diagnose, so the repository carries four layers of protection:
+
+| Protection | Level | What it does |
+|---|---|---|
+| `.editorconfig` | editor | forces UTF-8 without BOM, LF, trimmed trailing whitespace, final newline |
+| `.prettierignore` | tooling | keeps Prettier away from `SKILL.md` |
+| `scripts/check_skill.py` | script | BOM / CRLF / trailing whitespace / first line exactly `---` / frontmatter closed and actually parsed / `\---` escaping / `name` charset / `name` equals the directory name / README and LICENSE present |
+| `.github/workflows/validate.yml` | server-side | runs that script on every push and pull request -- cloners need to configure nothing |
+
+Run it locally:
+
+```bash
+python scripts/check_skill.py
+```
+
+To have it run before every commit (**once per clone**):
+
+```bash
+git config core.hooksPath .githooks
+```
+
+> **Contributors:** do not run a Markdown formatter (or an editor's format-on-save) over `SKILL.md`. Its top is **machine-read YAML frontmatter**, not human-facing layout. The checker catches this class of change, but catching it before a commit is cheaper than catching it in CI.
 
 ---
 

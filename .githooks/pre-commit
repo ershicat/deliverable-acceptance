@@ -1,0 +1,24 @@
+#!/bin/sh
+# 提交前校验：挡住"被格式化器改坏的 SKILL.md"。
+#
+# 背景
+#   这份仓库的产物是一个技能，而技能最脆弱的部位是 SKILL.md 的 frontmatter：
+#   首行必须严格等于 `---`。曾经有一个 Markdown 格式化器把它转义成 `\---`、
+#   并给行尾加上空格 —— 所有文件级检查都通过，但技能已经无法加载
+#   （平台只写一行日志就忽略它）。这个钩子把这类破坏挡在提交之前。
+#
+# 启用（每个克隆只需一次）
+#   git config core.hooksPath .githooks
+#
+# 找不到 Python 时放行，不阻塞提交 —— 服务端 CI 仍然会校验。
+
+set -e
+
+for candidate in python py python3; do
+    if command -v "$candidate" >/dev/null 2>&1; then
+        exec "$candidate" scripts/check_skill.py
+    fi
+done
+
+echo "pre-commit: python not found; skipping the skill check (CI still validates)" >&2
+exit 0

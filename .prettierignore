@@ -1,0 +1,9 @@
+# Prettier 忽略清单
+#
+# SKILL.md 不是"给人看的排版"，它的开头是机器读取的 YAML frontmatter。
+# 格式化器一旦改写它（例如把首行的 --- 转义成 \---），技能就会静默失效：
+# 平台只写一行日志然后忽略这个文件，而任何文件级检查都会通过。
+#
+# 因此这里跳过它。正文排版的事交给 .editorconfig，正确性交给 scripts/check_skill.py。
+SKILL.md
+**/SKILL.md

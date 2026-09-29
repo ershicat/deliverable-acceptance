@@ -1,0 +1,32 @@
+# EditorConfig —— 让所有编辑器对这份仓库的文本格式保持一致
+# https://editorconfig.org
+#
+# 为什么这份仓库特别需要它：
+# SKILL.md 的开头是机器读取的 YAML frontmatter，首行必须严格等于 `---`。
+# 一次事故里，某个 Markdown 格式化器把 `---` 转义成 `\---`、并给行尾加了空格，
+# 结果所有文件级检查都通过，但技能已经无法加载（平台只写一行日志就忽略它）。
+# 下面的设置从编辑器层面挡住最容易发生的那几类破坏。
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.md]
+# 保持 trim_trailing_whitespace = true：本仓库不用 Markdown 的行尾双空格硬换行，
+# 而校验脚本会把行尾空白判为失败。
+trim_trailing_whitespace = true
+max_line_length = off
+
+[*.{yml,yaml}]
+indent_size = 2
+
+[*.py]
+indent_size = 4
+
+[*.{ps1,psm1}]
+end_of_line = lf

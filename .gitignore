@@ -1,0 +1,13 @@
+# 编辑器 / 系统垃圾文件
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.bak
+*.orig
+*.rej
+*.swp
+*~
+
+# 校验脚本与钩子的临时产物
+__pycache__/
+*.pyc

@@ -2,6 +2,8 @@
 
 # deliverable-acceptance —— 通用 Agent 验收标准
 
+[![validate](https://github.com/ershicat/deliverable-acceptance/actions/workflows/validate.yml/badge.svg)](https://github.com/ershicat/deliverable-acceptance/actions/workflows/validate.yml)
+
 > A platform-neutral acceptance standard for agent deliverables. 四层 27 项，不预设平台、不预设交付形态。
 >
 > 一句话：**它不告诉你"文件在不在"，它告诉你"声明的东西到底会不会生效"，以及"没验的部分不许算通过"。**
@@ -31,11 +33,16 @@
 
 ```
 deliverable-acceptance/
-├── SKILL.md
-├── README.md     # 使用说明（中文）
-├── README.en.md  # 使用说明（English）
-├── LICENSE.md    # MIT License
-└── .gitattributes      # 标准正文（自包含，184 行）
+├── SKILL.md                        # 标准正文（自包含，184 行）
+├── README.md / README.en.md        # 使用说明（中 / 英）
+├── LICENSE.md                      # MIT License
+├── .editorconfig                   # 编辑器格式约束：UTF-8 无 BOM / LF / 去行尾空白
+├── .prettierignore                 # 让 Prettier 跳过 SKILL.md
+├── .gitattributes                  # 强制 LF
+├── .gitignore
+├── .githooks/pre-commit            # 提交前校验（可选启用）
+├── .github/workflows/validate.yml  # CI 校验（服务端兜底）
+└── scripts/check_skill.py          # 校验脚本本体
 ```
 
 **为什么标准只有一个文件**：标准里所有平台相关的部分都做成了"槽位"，由使用者填写；平台证据不进标准正文，所以 `SKILL.md` 能保持单文件、拷到哪都能用。README 与许可证是给人看的，不影响它作为技能的可用性。
@@ -164,6 +171,34 @@ slot11_forbidden: ["shell-exec", "background-jobs", "network-egress"]
 3. **行为面结论只在小范围内成立**——L4-04 的结果不能外推成"这个 agent 会干活"。
 4. **视觉与审美**不判，只判"能不能装"。
 5. **目标机环境差异**覆盖不到（换机后的路径、权限、杀软、端口）。
+
+---
+
+## 仓库校验：防止技能被"格式化"坏掉
+
+这份仓库的产物是一个**技能**，而技能最脆弱的部位是 `SKILL.md` 的开头：frontmatter 的首行必须严格等于 `---`。
+曾经有一个 Markdown 格式化器把它转义成 `\---`、并给行尾补了空格——**所有文件级检查都通过，但技能已经无法加载**（平台只写一行日志就忽略它）。这是最难排查的一类缺陷，所以仓库上了四层防护：
+
+| 防护 | 作用层面 | 做什么 |
+|---|---|---|
+| `.editorconfig` | 编辑器 | 强制 UTF-8 无 BOM、LF、去行尾空白、文件末尾留换行 |
+| `.prettierignore` | 工具 | 让 Prettier 跳过 `SKILL.md` |
+| `scripts/check_skill.py` | 脚本 | BOM / CRLF / 行尾空白 / 首行严格 `---` / frontmatter 闭合与真解析 / `\---` 转义 / `name` 字符集 / `name` 是否等于目录名 / README 与 LICENSE 是否存在 |
+| `.github/workflows/validate.yml` | 服务端 | 每次 push 与 PR 自动跑上面的脚本；克隆者不需要配置任何东西 |
+
+本地跑一次：
+
+```bash
+python scripts/check_skill.py
+```
+
+想让它在你每次 commit 之前自动跑（**每个克隆只需设置一次**）：
+
+```bash
+git config core.hooksPath .githooks
+```
+
+> **贡献者请注意**：不要用 Markdown 格式化器（或编辑器的 format-on-save）处理 `SKILL.md`。它的开头是**机器读取的 YAML frontmatter**，不是给人看的排版。校验脚本会拦住这类改动，但拦在提交前比拦在 CI 上省事。
 
 ---
 
